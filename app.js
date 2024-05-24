@@ -3,6 +3,7 @@ const app = express();
 const tourRoute = require("./routes/tours");
 const userRoute = require("./routes/users");
 
+console.log(process.env.NODE_ENV);
 //////////middleware////////////////////
 app.use(express.json()); //1.middleware
 app.use((req, res, next) => {
