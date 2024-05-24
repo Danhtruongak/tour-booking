@@ -3,10 +3,7 @@ const toursDAOS = require("../daos/tours");
 const router = express.Router();
 
 //param middleware check for id params
-router.param("id", (req, res, next, value) => {
-  console.log(`Tour id is ${value}`);
-  next();
-});
+router.param("id", toursDAOS.checkID);
 
 ////Mounting a router /tour routes/////////////////////////
 

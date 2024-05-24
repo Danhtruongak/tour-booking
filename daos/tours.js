@@ -4,10 +4,22 @@ module.exports.checkID = (req, res, next, value) => {
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({
       status: "fail",
-      message: "id not found",
+      message: "Invalid ID",
     });
   }
   next();
+};
+
+///midlleware to check body include name and price
+module.exports.checkBody = (req, res, next) => {
+  if (!req.body.name || !req.body.price) {
+    return res.status(400).json({
+      status: "fail",
+      message: "Missing name or price",
+    });
+  } else {
+    next();
+  }
 };
 
 module.exports.getAllTours = (req, res) => {
