@@ -4,10 +4,14 @@ const router = express.Router();
 
 //param middleware check for id params
 router.param("id", toursDAOS.checkID);
+/////////checkbody middleware to check body include name and price///////
 
 ////Mounting a router /tour routes/////////////////////////
 
-router.route("/").get(toursDAOS.getAllTours).post(toursDAOS.createTour);
+router
+  .route("/")
+  .get(toursDAOS.getAllTours)
+  .post(toursDAOS.checkBody, toursDAOS.createTour);
 router
   .route("/:id")
   .get(toursDAOS.getTour)
