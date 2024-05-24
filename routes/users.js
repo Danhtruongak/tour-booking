@@ -1,19 +1,19 @@
-//routes/users
-const userController = require("../controllers/users");
 const express = require("express");
-const auth = require("./../controllers/auth");
 const router = express.Router();
+const usersDAOS = require("../daos/users");
 
-router.post("/signup", auth.signup);
-router.post("/login", auth.login);
-router
-  .route("/")
-  .get(userController.getAllUsers)
-  .post(userController.createUser);
+//param middleware
+router.param("id", (req, res, next) => {
+  next();
+});
+
+//////Mounting a router /user routes/////////////////////////////
+
+router.route("/").get(usersDAOS.getAllUsers).post(usersDAOS.createUser);
 router
   .route("/:id")
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUsers);
+  .get(usersDAOS.getUser)
+  .patch(usersDAOS.updateUser)
+  .delete(usersDAOS.deleteUser);
 
 module.exports = router;
