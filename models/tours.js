@@ -1,5 +1,6 @@
-const { sum } = require("firebase/firestore");
 const mongoose = require("mongoose");
+const validator = require("validator");
+
 /////////////////schema///
 const tourSchema = new mongoose.Schema({
   name: {
@@ -9,6 +10,7 @@ const tourSchema = new mongoose.Schema({
     trim: true,
     maxlength: [40, "The Tour name should be less than 40 characters"], //validator
     minlength: [10, "The Tour name should be more than 10 characters"], //validator
+    validate: [validator.isAlpha, "Tour name must only contain character"], //validator
   },
   duration: {
     type: Number,
