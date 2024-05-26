@@ -1,11 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const usersDAOS = require("../daos/users");
+const auth = require("../daos/auth");
 
-//param middleware
-router.param("id", (req, res, next) => {
-  next();
-});
+router.post("/signup", auth.signup);
 
 //////Mounting a router /user routes/////////////////////////////
 
