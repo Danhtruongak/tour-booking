@@ -1,3 +1,33 @@
+completion:
+
+1. Set up project structure and connected to MongoDB database
+2. Defined data models using Mongoose
+3. Created routes for tours and users
+4. Implemented user authentication:
+5. User registration and login using JWT
+6. Password hashing with bcrypt
+7. Password reset functionality
+8. Implemented authentication and authorization middleware
+9. Developed tour management:
+10. CRUD operations for tour listings
+11. Tour search functionality
+12. Implemented booking management
+13. Developed user review functionality
+14. Implemented error handling and validation
+15. Created custom AppError class
+16. Implemented catchAsync function
+17. Developed mailer utility using nodemailer
+18. Developed views router and controllers for tour overview and individual tour pages
+
+future completion:
+
+1. Implement text search, aggreation and lookup
+2. Complete pug templates and connect data sources
+3. Obtain nessesary images for display
+4. Implement testing for each route
+5. Setting on github for deploment
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Project Proposal: Tour Booking API
 
 The project aims to develop a Tour Booking API that allows users to browse, book, and manage tours. The API will provide functionality for tour operators to create and manage tour listings, while users can search for tours, make bookings, and leave reviews.
