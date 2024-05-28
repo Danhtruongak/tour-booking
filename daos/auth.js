@@ -5,6 +5,7 @@ const jwtToken = require("jsonwebtoken");
 const User = require("../models/users");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const sendEmail = require("../utils/mailer");
 
 const signToken = (id) => {
   return jwtToken.sign({ id }, process.env.JWT_SECRET, {
@@ -116,5 +117,9 @@ module.exports.forgotPassword = catchAsync(async (req, res, next) => {
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
   //3 send the random token
+  const resetURL = `${req.protocol}://${req.get(
+    "host"
+  )}/users/resetPassword/${resetToken}`;
+  const message = `Forgot your password? Reset it here: ${resetURL}\nIf you didn't forget your password, please ignore this email`;
 });
 module.exports.resetPassword = (req, res, next) => {};
