@@ -1,3 +1,4 @@
+//daos/tours
 const Tour = require("../models/tours");
 const mongoose = require("mongoose");
 const catchAsync = require("../utils/catchAsync");
@@ -34,23 +35,19 @@ module.exports.getAllTours = catchAsync(async (req, res, next) => {
   });
 });
 module.exports.getTour = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return next(new AppError("Invalid tour ID", 400));
-  }
-
-  const tour = await Tour.findById(id);
+  const { slug } = req.params;
+  const tour = await Tour.findOne({ slug }).populate({
+    path: "guides",
+    select: "name photo role",
+  });
 
   if (!tour) {
-    return next(new AppError("No tour found with that ID", 404));
+    return next(new AppError("No tour found with that slug", 404));
   }
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      tour,
-    },
+  res.status(200).render("tour", {
+    title: tour.name,
+    tour,
   });
 });
 

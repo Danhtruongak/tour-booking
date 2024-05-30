@@ -1,3 +1,4 @@
+//routes/tour
 const express = require("express");
 const toursDAOS = require("../daos/tours");
 const router = express.Router();

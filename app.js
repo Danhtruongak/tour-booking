@@ -20,7 +20,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get("/", viewsRouter);
+app.use("/", viewsRouter);
 app.use("/tours", tourRoute);
 app.use("/users", userRoute);
 

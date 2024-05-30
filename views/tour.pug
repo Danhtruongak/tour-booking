@@ -1,4 +1,91 @@
 extends base
 
 block content
-    h1 This is the tour detail page
+  section.section-header
+    .header__hero
+      .header__hero-overlay &nbsp;
+      img.header__hero-img(src='/img/tours/tourImgCover1.jpg', alt='tourImgCover1')
+
+  .heading-box
+    h1.heading-primary
+      span=`${tour.name} tour`
+    .heading-box__group
+      .heading-box__detail
+        i.fas.fa-clock.heading-box__icon
+        span.heading-box__text=`${tour.duration} days`
+      .heading-box__detail
+        i.fas.fa-map-marker-alt.heading-box__icon
+        span.heading-box__text=`Start Location : ${tour.startLocation}`
+
+  section.section-description
+    .overview-box
+      div
+        .overview-box__group
+          h2.heading-secondary.ma-bt-lg Quick facts
+          .overview-box__detail
+            i.fas.fa-calendar-alt.overview-box__icon
+            span.overview-box__label Next date
+            span.overview-box__text=new Date(tour.startDate).toLocaleDateString()
+          .overview-box__detail
+            i.fas.fa-users.overview-box__icon
+            span.overview-box__label Participants
+            span.overview-box__text=tour.groupSize
+          .overview-box__detail
+            i.fas.fa-star.overview-box__icon
+            span.overview-box__label Rating
+            span.overview-box__text=`${tour.ratingsAverage}/5`
+
+        .overview-box__group
+          h2.heading-secondary.ma-bt-lg Your tour guides
+          each guide in tour.guides
+            .overview-box__detail
+              img.overview-box__img(src=`/img/users/${guide.photo}`, alt=`${guide.name}`)
+              span.overview-box__label=guide.roles
+              span.overview-box__text=guide.name
+
+    .description-box
+      h2.heading-secondary.ma-bt-lg=`About ${tour.name} tour`
+      p.description__text Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      p.description__text Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum!
+
+  section.section-pictures
+    each img, index in tour.images
+      .picture-box
+        img.picture-box__img(src=`/img/tours/${img}`, alt=`${tour.name} ${index+1}`, class=`picture-box__img--${index+1}`)
+      
+
+  section.section-map
+  
+
+  section.section-reviews
+    .reviews
+      .reviews__card
+        .reviews__avatar
+          img.reviews__avatar-img(src='/img/users/user-7.jpg', alt='Jim Brown')
+          h6.reviews__user Jim Brown
+        p.reviews__text Lorem ipsum dolor sit amet consectetur adipisicing elit. Cumque dignissimos sint quo commodi corrupti accusantium veniam saepe numquam.
+        .reviews__rating
+          svg.reviews__star.reviews__star--active
+            use(xlink:href='/img/icons.svg#icon-star')
+          svg.reviews__star.reviews__star--active
+            use(xlink:href='/img/icons.svg#icon-star')
+          svg.reviews__star.reviews__star--active
+            use(xlink:href='/img/icons.svg#icon-star')
+          svg.reviews__star.reviews__star--active
+            use(xlink:href='/img/icons.svg#icon-star')
+          svg.reviews__star.reviews__star--active
+            use(xlink:href='/img/icons.svg#icon-star')
+
+  section.section-cta
+    .cta
+      .cta__img.cta__img--logo
+        img(src='/img/logo-white.png', alt='Natours logo')
+      img.cta__img.cta__img--1(src='/img/tour-5-2.jpg', alt='')
+      img.cta__img.cta__img--2(src='/img/tour-5-1.jpg', alt='')
+      .cta__content
+        h2.heading-secondary What are you waiting for?
+        p.cta__text 10 days. 1 adventure. Infinite memories. Make it yours today!
+        if user
+          button.btn.btn--green.span-all-rows Book tour now!
+        else
+          a.btn.btn--green.span-all-rows(href="/login") Login to book tour

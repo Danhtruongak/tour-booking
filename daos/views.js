@@ -1,7 +1,8 @@
+//daos/views
 const Tour = require("./../models/tours");
 const catchAsync = require("./../utils/catchAsync");
-
-exports.getOverview = catchAsync(async (req, res, next) => {
+const AppError = require("./../utils/appError");
+module.exports.getOverview = catchAsync(async (req, res, next) => {
   // 1. get tour data from collection
   const tours = await Tour.find({});
   // 2. build template
@@ -13,8 +14,18 @@ exports.getOverview = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getTour = (req, res) => {
-  res.status(200).render("tour", {
-    title: "Vinh Ha Long Tours",
+module.exports.getTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findOne({ slug: req.params.slug }).populate({
+    path: "guides",
+    select: "name photo roles",
   });
-};
+  // console.log("tour:", tour);
+  if (!tour) {
+    return next(new AppError("No tour found with that ID", 404));
+  }
+
+  res.status(200).render("tour", {
+    title: tour.name,
+    tour,
+  });
+});
