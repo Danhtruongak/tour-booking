@@ -2,6 +2,7 @@
 const Tour = require("./../models/tours");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
+
 module.exports.getOverview = catchAsync(async (req, res, next) => {
   // 1. get tour data from collection
   const tours = await Tour.find({});
@@ -29,3 +30,9 @@ module.exports.getTour = catchAsync(async (req, res, next) => {
     tour,
   });
 });
+//route handler for login
+module.exports.getLogInForm = (req, res) => {
+  res.status(200).render("logInTemplate", {
+    title: "Log in into your account",
+  });
+};

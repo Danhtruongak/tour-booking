@@ -31,33 +31,41 @@ module.exports.signup = catchAsync(async (req, res, next) => {
     },
   });
 });
-//log in, if email/password exist anc correct
 module.exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+
+  console.log("Login request received with email:", email);
+
+  //1 check if email and password provided
   if (!email || !password) {
+    console.log("Email or password not provided");
     return next(new AppError("Please provide email and password!", 400));
   }
 
-  //check user exists
+  //2 find the user by email
   const user = await User.findOne({ email }).select("+password");
 
   if (!user) {
+    console.log("User not found");
     return next(new AppError("Incorrect email or password!", 401));
   }
-  //check password is correct
 
   const correct = await user.correctPassword(password, user.password);
   if (!correct) {
+    console.log("Incorrect password");
     return next(new AppError("Incorrect email or password!", 401));
   }
 
-  //send token
+  console.log("Login successful");
+
+  //4 send token
   const token = signToken(user._id);
   res.status(200).json({
     status: "success",
     token,
   });
 });
+
 //middleware protect routes
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
