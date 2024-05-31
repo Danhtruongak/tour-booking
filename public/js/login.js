@@ -1,6 +1,5 @@
 const login = async (email, password) => {
   try {
-    console.log("Login request received with email:", email);
     const result = await axios({
       method: "POST",
       url: "/users/login",
@@ -9,18 +8,22 @@ const login = async (email, password) => {
         password,
       },
     });
-    console.log(result);
-  } catch (error) {
-    console.log("Error:", error.response.data);
+    if (result.data.status === "success") {
+      alert("Login successful");
+      window.setTimeout(() => {
+        location.assign("/");
+      }, 1500);
+    }
+  } catch (err) {
+    alert(err.response.data.message);
   }
 };
 
 document.querySelector(".form").addEventListener("submit", (e) => {
   e.preventDefault();
-  console.log("Form submitted");
+
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  console.log("Email:", email);
-  console.log("Password:", password);
+
   login(email, password);
 });

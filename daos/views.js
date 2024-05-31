@@ -12,6 +12,7 @@ module.exports.getOverview = catchAsync(async (req, res, next) => {
   res.status(200).render("overview", {
     title: "All Tours",
     tours,
+    user: req.user,
   });
 });
 
@@ -26,13 +27,16 @@ module.exports.getTour = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).render("tour", {
-    title: tour.name,
+    title: `${tour.name} Tour`,
     tour,
+    user: req.user,
   });
 });
 //route handler for login
 module.exports.getLogInForm = (req, res) => {
   res.status(200).render("logInTemplate", {
     title: "Log in into your account",
+    user: req.user,
   });
+  console.log("req.user:", req.user);
 };
