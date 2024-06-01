@@ -6,14 +6,21 @@ const User = require("../models/users");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const sendEmail = require("../utils/mailer");
+var token = "";
 
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  console.log("From signToken: Signing token for user ID:", id);
+  token = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
+  console.log("From signToken: Generated token:", token);
+  return token;
 };
+
 const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
+  token = signToken(user._id);
+  console.log("From createSendToken: Generated token:", token);
+
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -22,10 +29,14 @@ const createSendToken = (user, statusCode, res) => {
   };
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 
+  console.log("From createSendToken: Cookie options:", cookieOptions);
+
   res.cookie("jwt", token, cookieOptions);
+  console.log("From createSendToken: Sent token as cookie");
 
   // Remove password from output
   user.password = undefined;
+  console.log("From createSendToken: Removed password from user object");
 
   res.status(statusCode).json({
     status: "success",
@@ -34,6 +45,7 @@ const createSendToken = (user, statusCode, res) => {
       user,
     },
   });
+  console.log("From createSendToken: Sent response with token and user data");
 };
 
 module.exports.signup = catchAsync(async (req, res, next) => {
@@ -50,6 +62,8 @@ module.exports.signup = catchAsync(async (req, res, next) => {
 module.exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
+  console.log("From login: Received login request with email:", email);
+
   //1 check if email and password provided
   if (!email || !password) {
     return next(new AppError("Please provide email and password!", 400));
@@ -57,10 +71,12 @@ module.exports.login = catchAsync(async (req, res, next) => {
 
   //2 find the user by email
   const user = await User.findOne({ email }).select("+password");
-
+  console.log("From login: Found user:", user.name);
   if (!user) {
     return next(new AppError("Incorrect email or password!", 401));
   }
+
+  console.log("From login: Found user:", user.name);
 
   const correct = await user.correctPassword(password, user.password);
   if (!correct) {
@@ -70,14 +86,49 @@ module.exports.login = catchAsync(async (req, res, next) => {
   //4 send token
   createSendToken(user, 200, res);
   req.user = user;
-  console.log("logged in user:", user.name);
+  console.log("From login: Logged in user:", user.name);
 });
-exports.logout = (req, res) => {
-  res.cookie("jwt", "loggedout", {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true,
-  });
-  res.status(200).json({ status: "success" });
+
+module.exports.logout = async (req, res) => {
+  try {
+    // Get the user ID from the authenticated user
+    const userId = req.user.id;
+
+    // Perform server-side logout operations
+    // 1. Invalidate the token on the server-side
+    // You can implement token invalidation based on your authentication strategy
+    // For example, if using JWT, you can add the token to a blacklist or revoke it
+
+    // 2. End the user's session
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error destroying session:", err);
+      }
+    });
+
+    // 3. Update the user's last logout timestamp in the database
+    await User.findByIdAndUpdate(userId, {
+      lastLogoutAt: Date.now(),
+    });
+
+    // Send a response with an expired JWT cookie and success message
+    res.cookie("jwt", "loggedout", {
+      expires: new Date(Date.now() + 10 * 1000),
+      httpOnly: true,
+    });
+
+    res.status(200).json({
+      status: "success",
+      message: "Logged out successfully!",
+    });
+  } catch (error) {
+    // Handle any errors that occur during logout
+    console.error("Logout error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred during logout.",
+    });
+  }
 };
 //middleware protect routes
 module.exports.protect = catchAsync(async (req, res, next) => {
@@ -117,29 +168,29 @@ module.exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-//middleware check login/logout
-//only render pages and no errors
+// middleware/isLoggedIn.js
 module.exports.isLoggedIn = async (req, res, next) => {
-  if (req.cookies.jwt) {
-    //verify token
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET
-    );
-    //3 check if user still exist
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
-      return next();
-    }
-    //4 check if user changed password after token issued
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-    //there is a logged in user
-    res.locals.user = currentUser;
+  // Check if there is a token in the request
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
     return next();
   }
-  next(); //in case no cookies
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    return next();
+  }
+  if (await user.changedPasswordAfter(decoded.iat)) {
+    return next();
+  }
+  req.user = user;
+  next();
 };
 
 module.exports.restrictTo = (...roles) => {

@@ -5,6 +5,7 @@ const AppError = require("./../utils/appError");
 
 module.exports.getOverview = catchAsync(async (req, res, next) => {
   // 1. get tour data from collection
+  console.log("From getOverview: req.user =", req.user);
   const tours = await Tour.find({});
   // 2. build template
   // 3. render template
@@ -34,9 +35,18 @@ module.exports.getTour = catchAsync(async (req, res, next) => {
 });
 //route handler for login
 module.exports.getLogInForm = (req, res) => {
+  console.log("From:getLogInForm: Rendering login form");
+
+  // Check if req.user is available
+  if (req.user) {
+    console.log("From:getLogInForm:Logged in user:", req.user.name);
+  } else {
+    console.log("From:getLogInForm: No logged in user found");
+  }
+
   res.status(200).render("logInTemplate", {
+    console: "From:getLogInForm:User data passed to template",
     title: "Log in into your account",
     user: req.user,
   });
-  console.log("req.user:", req.user);
 };
