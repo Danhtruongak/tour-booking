@@ -1,4 +1,5 @@
 //app
+const session = require("express-session");
 const path = require("path");
 const express = require("express");
 const app = express();
@@ -21,6 +22,7 @@ app.use(cookieParser());
 //middlware catch err after all routes
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
+  res.locals.user = req.user;
 
   next();
 });

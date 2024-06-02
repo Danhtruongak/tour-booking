@@ -13,7 +13,6 @@ module.exports.getOverview = catchAsync(async (req, res, next) => {
   res.status(200).render("overview", {
     title: "All Tours",
     tours,
-    user: req.user,
   });
 });
 

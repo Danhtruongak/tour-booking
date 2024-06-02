@@ -1,5 +1,5 @@
 // login.js
-
+var token = "";
 // Store the token in the browser's local storage
 const storeToken = (token) => {
   localStorage.setItem("jwt", token);
@@ -14,7 +14,10 @@ const logout = async () => {
   console.log("logout function called");
   try {
     const res = await fetch("/users/logout", {
-      method: "GET",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
     const result = await res.json();
@@ -22,8 +25,20 @@ const logout = async () => {
     console.log("Logout response:", result);
 
     if (result.status === "success") {
+      console.log("Token before removal:", localStorage.getItem("jwt"));
       localStorage.removeItem("jwt"); // Remove the token from local storage
-      location.reload(true);
+      console.log("Token after removal:", localStorage.getItem("jwt"));
+      window.location.href = "/";
+      // Update the UI to reflect the logged-out state
+      const userNavEl = document.querySelector(".nav__el--user");
+      if (userNavEl) {
+        userNavEl.innerHTML = `
+          <a class="nav__el" href="/login">Log in</a>
+          <a class="nav__el nav__el--cta" href="#">Sign up</a>
+        `;
+        console.log("updated UI", userNavEl.innerHTML);
+      }
+
       alert(result.message); // Display the success message
     } else {
       alert("Logout failed. Please try again."); // Display an error message
@@ -33,15 +48,11 @@ const logout = async () => {
     alert("An error occurred while logging out. Please try again.");
   }
 };
-
-const redirectToLogin = () => {
-  window.location.href = "/";
-};
-
 const logOutBtn = document.querySelector(".nav__el--logout");
 
 if (logOutBtn) {
   logOutBtn.addEventListener("click", logout);
+  console.log("Logout button clicked");
 }
 
 const login = async (email, password) => {

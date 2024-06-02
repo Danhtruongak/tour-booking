@@ -8,6 +8,11 @@ const AppError = require("../utils/appError");
 const sendEmail = require("../utils/mailer");
 var token = "";
 
+module.exports.setUserLocals = (req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+};
+
 const signToken = (id) => {
   console.log("From signToken: Signing token for user ID:", id);
   token = jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -91,32 +96,17 @@ module.exports.login = catchAsync(async (req, res, next) => {
 
 module.exports.logout = async (req, res) => {
   try {
-    // Get the user ID from the authenticated user
-    const userId = req.user.id;
-
-    // Perform server-side logout operations
-    // 1. Invalidate the token on the server-side
-    // You can implement token invalidation based on your authentication strategy
-    // For example, if using JWT, you can add the token to a blacklist or revoke it
-
-    // 2. End the user's session
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("Error destroying session:", err);
-      }
-    });
-
-    // 3. Update the user's last logout timestamp in the database
-    await User.findByIdAndUpdate(userId, {
-      lastLogoutAt: Date.now(),
-    });
+    if (req.user) {
+      const userId = req.user.id;
+      await User.findByIdAndUpdate(userId, {
+        lastLogoutAt: Date.now(),
+      });
+    }
 
     // Send a response with an expired JWT cookie and success message
-    res.cookie("jwt", "loggedout", {
-      expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true,
-    });
-
+    res.clearCookie("jwt"); // Clear the JWT cookie
+    req.user = null;
+    res.locals.user = null; // Clear the user object
     res.status(200).json({
       status: "success",
       message: "Logged out successfully!",
@@ -143,6 +133,7 @@ module.exports.protect = catchAsync(async (req, res, next) => {
     token = req.cookies.jwt;
   }
   if (!token) {
+    req.user = null;
     return next(
       new AppError("You are not logged in! Please log in to get access", 401)
     );
@@ -164,7 +155,7 @@ module.exports.protect = catchAsync(async (req, res, next) => {
     );
   }
   req.user = currentUser;
-  res.locals.user = currentUser;
+
   next();
 });
 
@@ -184,6 +175,7 @@ module.exports.isLoggedIn = async (req, res, next) => {
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
   const user = await User.findById(decoded.id);
   if (!user) {
+    res.locals.user = null; //set user to null if no user found
     return next();
   }
   if (await user.changedPasswordAfter(decoded.iat)) {

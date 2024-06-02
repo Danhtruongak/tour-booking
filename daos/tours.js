@@ -5,34 +5,40 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 module.exports.getAllTours = catchAsync(async (req, res, next) => {
-  //create query
-  const queryObj = { ...req.query };
-  const excludedFields = ["page", "sort", "limit", "fields"];
-  excludedFields.forEach((el) => delete queryObj[el]);
+  try {
+    //create query
+    const queryObj = { ...req.query };
+    const excludedFields = ["page", "sort", "limit", "fields"];
+    excludedFields.forEach((el) => delete queryObj[el]);
 
-  //advanced filtering
-  let queryStr = JSON.stringify(queryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lt|lte)\b/g, (match) => `$${match}`);
+    //advanced filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lt|lte)\b/g, (match) => `$${match}`);
 
-  let query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
 
-  //sorting
-  if (req.query.sort) {
-    const sortBy = req.query.sort.split(",").join(" "); //additional query
-    console.log(sortBy);
-    query = query.sort(sortBy);
-  } else {
-    query = query.sort("-createdAt"); //showed recent one
+    //sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" "); //additional query
+      console.log(sortBy);
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort("-createdAt"); //showed recent one
+    }
+
+    //execute query
+    const tours = await query;
+
+    res.status(200).json({
+      status: "success",
+      result: tours.length,
+      data: {
+        tours,
+      },
+    });
+  } catch (err) {
+    next(err);
   }
-  //execute query
-  const tours = await query;
-  res.status(200).json({
-    status: "success",
-    result: tours.length,
-    data: {
-      tours,
-    },
-  });
 });
 module.exports.getTour = catchAsync(async (req, res, next) => {
   const { slug } = req.params;

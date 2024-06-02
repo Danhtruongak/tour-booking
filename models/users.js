@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user",
   },
+  lastLogoutAt: { type: Date },
   password: {
     type: String,
     required: [true, "Password is required"],

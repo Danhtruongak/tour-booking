@@ -5,7 +5,7 @@ const auth = require("../daos/auth");
 
 router.post("/signup", auth.signup);
 router.post("/login", auth.login);
-router.get("/logout", auth.logout);
+router.post("/logout", auth.logout);
 router.post("/forgotPassword", auth.forgotPassword);
 router.post("/resetPassword/:token", auth.resetPassword);
 router.patch("/resetPassword/:token", auth.resetPassword);
