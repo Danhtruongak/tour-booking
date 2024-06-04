@@ -1,12 +1,25 @@
+//- header.pug
+
 header.header
   nav.nav.nav--tours
     a.nav__el(href='/') All tours
+
+  
+    .search-bar
+      input(type="text", id="search-input", placeholder="Search City ")
+      button(id="search-button")
+        i.fas.fa-search
+   
+
   nav.nav.nav--user
-    if user
+    if locals.user
       a.nav__el.nav__el--logout Log out
       a.nav__el(href='/me')
-        img.nav__user-img(src=`/img/users/${user.photo}` alt=`Photo of ${user.name}`)
-        span= user.name.split(' ')[0]
+        img.nav__user-img(src=`/img/users/${locals.user.photo}` alt=`Photo of ${locals.user.name}`)
+        span= locals.user.name.split(' ')[0]
     else
       a.nav__el(href='/login') Log in
       a.nav__el.nav__el--cta(href='#') Sign up
+
+  // Include the bundled JavaScript file
+  script(type="module" src='/js/bundle.js')

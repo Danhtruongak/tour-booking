@@ -1,22 +1,20 @@
+//routes/users.js
 const express = require("express");
+const userDAOS = require("./../daos/users");
+const authDAOS = require("./../daos/auth");
+
 const router = express.Router();
-const usersDAOS = require("../daos/users");
-const auth = require("../daos/auth");
 
-router.post("/signup", auth.signup);
-router.post("/login", auth.login);
-router.post("/logout", auth.logout);
-router.post("/forgotPassword", auth.forgotPassword);
-router.post("/resetPassword/:token", auth.resetPassword);
-router.patch("/resetPassword/:token", auth.resetPassword);
+router.post("/signup", authDAOS.signup);
+router.post("/login", authDAOS.login);
+router.get("/logout", authDAOS.logout);
 
-//////Mounting a router /user routes/////////////////////////////
+router.route("/").get(userDAOS.getAllUsers).post(userDAOS.createUser);
 
-router.route("/").get(usersDAOS.getAllUsers).post(usersDAOS.createUser);
 router
   .route("/:id")
-  .get(usersDAOS.getUser)
-  .patch(usersDAOS.updateUser)
-  .delete(usersDAOS.deleteUser);
+  .get(userDAOS.getUser)
+  .patch(userDAOS.updateUser)
+  .delete(userDAOS.deleteUser);
 
 module.exports = router;

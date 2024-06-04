@@ -1,40 +1,51 @@
-//app
-const session = require("express-session");
+///APP
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const path = require("path");
 const express = require("express");
-const app = express();
-const AppErrors = require("./utils/appError");
-const globalErrorHandler = require("./daos/errors");
-const tourRoute = require("./routes/tours");
-const userRoute = require("./routes/users");
+const AppError = require("./utils/appError");
+const tours = require("./routes/tours");
+const users = require("./routes/users");
 const viewsRouter = require("./routes/views");
 
-const cookieParser = require("cookie-parser");
+const app = express();
 
 app.set("view engine", "pug");
 app.set("views", path.join(__dirname, "views"));
+
+// Serving static files
 app.use(express.static(path.join(__dirname, "public")));
 
-//body parsser
-app.use(express.json({ limit: "10kb" }));
+// 1) MIDDLEWARES
+if (process.env.NODE_ENV === "development") {
+}
+
+app.use(express.json());
 app.use(cookieParser());
-
-//middlware catch err after all routes
+app.use(
+  cors({
+    origin: "http://localhost:8000",
+  })
+);
 app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString();
-  res.locals.user = req.user;
-
+  console.log("Hello from the middleware 👋");
   next();
 });
 
-app.use("/", viewsRouter);
-app.use("/tours", tourRoute);
-app.use("/users", userRoute);
-
-//Catch all route handler for undefined routes
-app.all("*", (req, res, next) => {
-  next(new AppErrors(`Can't find ${req.originalUrl} on this server`, 404));
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  console.log(req.cookies);
+  next();
 });
 
-app.use(globalErrorHandler);
+// 3) ROUTES
+///connnect to main page
+app.use("/", viewsRouter);
+app.use("/tours", tours);
+app.use("/users", users);
+
+app.all("*", (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
 module.exports = app;

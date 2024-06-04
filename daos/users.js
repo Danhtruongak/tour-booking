@@ -1,51 +1,74 @@
-//daos/users
-const User = require("../models/users");
-const catchAsync = require("../utils/catchAsync");
+const User = require("./../models/users");
+const catchAsync = require("./../utils/catchAsync");
+const AppError = require("./../utils/appError");
+const factory = require("./handlerFactory");
 
-module.exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
-
-  res.status(200).json({
-    status: "success",
-    result: users.length,
-    data: {
-      users,
-    },
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
   });
-});
+  return newObj;
+};
 
-module.exports.getUser = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
-  if (!user) {
-    return next(new AppError("No user found with that ID", 404));
+exports.updateMe = catchAsync(async (req, res, next) => {
+  // 1) Create error if user POSTs password data
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(
+      new AppError(
+        "This route is not for password updates. Please use /updateMyPassword.",
+        400
+      )
+    );
   }
 
+  // 2) Filtered out unwanted fields names that are not allowed to be updated
+  const filteredBody = filterObj(req.body, "name", "email");
+
+  console.log("Filtered body:", filteredBody);
+
+  // 3) Update user document
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true,
+  });
+
+  console.log("Updated user:", updatedUser);
+
   res.status(200).json({
     status: "success",
     data: {
-      user,
+      user: updatedUser,
     },
   });
 });
 
-module.exports.createUser = (req, res) => {
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  console.log("User deleted (soft delete)");
+
+  res.status(204).json({
+    status: "success",
+    data: null,
+  });
+});
+
+exports.createUser = (req, res) => {
   res.status(500).json({
     status: "error",
-    message: " this route not yet defined",
+    message: "This route is not defined! Please use /signup instead",
   });
 };
 
-module.exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: "error",
-    message: " this route not yet defined",
-  });
-};
+exports.getUser = factory.getOne(User);
+exports.getAllUsers = factory.getAll(User);
 
-module.exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: "error",
-    message: " this route not yet defined",
-  });
-};
+// Do NOT update passwords with this!
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);

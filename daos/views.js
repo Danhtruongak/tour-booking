@@ -1,51 +1,54 @@
-//daos/views
+// daos/view
 const Tour = require("./../models/tours");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
+const User = require("./../models/users");
 
-module.exports.getOverview = catchAsync(async (req, res, next) => {
-  // 1. get tour data from collection
-  console.log("From getOverview: req.user =", req.user);
-  const tours = await Tour.find({});
-  // 2. build template
-  // 3. render template
+exports.getOverview = catchAsync(async (req, res, next) => {
+  // 1) Get tour data from collection
+  const tours = await Tour.find();
 
+  // 2) Build template
+  // 3) Render that template using tour data from 1)
+  console.log("Rendering overview");
+  console.log("User data in getOverview:", res.locals.user);
   res.status(200).render("overview", {
     title: "All Tours",
     tours,
   });
 });
 
-module.exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findOne({ slug: req.params.slug }).populate({
-    path: "guides",
-    select: "name photo roles",
-  });
-  // console.log("tour:", tour);
+exports.getTour = catchAsync(async (req, res, next) => {
+  // 1) Get the data, for the requested tour (including reviews and guides)
+  const tour = await Tour.findOne({ slug: req.params.slug });
+
   if (!tour) {
-    return next(new AppError("No tour found with that ID", 404));
+    return next(new AppError("There is no tour with that name.", 404));
   }
 
+  // 2) Build template
+  // 3) Render template using data from 1)
+  console.log("Rendering tour");
+  console.log("User data in getTour:", res.locals.user);
   res.status(200).render("tour", {
     title: `${tour.name} Tour`,
     tour,
-    user: req.user,
   });
 });
-//route handler for login
-module.exports.getLogInForm = (req, res) => {
-  console.log("From:getLogInForm: Rendering login form");
 
-  // Check if req.user is available
-  if (req.user) {
-    console.log("From:getLogInForm:Logged in user:", req.user.name);
-  } else {
-    console.log("From:getLogInForm: No logged in user found");
-  }
+// Route handler for login
+exports.getLoginForm = (req, res) => {
+  console.log("Rendering login form");
+  console.log("User data in getLoginForm:", res.locals.user);
+  res.status(200).render("login", {
+    title: "Log into your account",
+  });
+};
 
-  res.status(200).render("logInTemplate", {
-    console: "From:getLogInForm:User data passed to template",
-    title: "Log in into your account",
-    user: req.user,
+exports.getAccount = (req, res) => {
+  console.log("Rendering user account");
+  console.log("User data in getAccount:", res.locals.user);
+  res.status(200).render("account", {
+    title: "Your account",
   });
 };

@@ -1,14 +1,16 @@
 //doas/erros.js
-
-const AppError = require("../utils/appError");
+const AppError = require("./../utils/appError");
 
 module.exports = (err, req, res, next) => {
+  // console.log(err.stack);
+
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
-  console.log(err);
-  res.status(err.statusCode).json({
-    status: err.status,
-    message: err.message,
-  });
+  if (process.env.NODE_ENV === "development") {
+    sendErrorDev(err, res);
+  } else if (process.env.NODE_ENV === "production") {
+    let error = { ...err };
+    sendErrorProd(error, res);
+  }
 };

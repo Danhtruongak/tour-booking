@@ -1,31 +1,23 @@
-//daos/auth
-
+// daos/auth
+const crypto = require("crypto");
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/users");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const sendEmail = require("../utils/mailer");
-var token = "";
-
-module.exports.setUserLocals = (req, res, next) => {
-  res.locals.user = req.user || null;
-  next();
-};
+const app = require("../app");
 
 const signToken = (id) => {
-  console.log("From signToken: Signing token for user ID:", id);
-  token = jwt.sign({ id }, process.env.JWT_SECRET, {
+  console.log(`Signing token for user with ID: ${id}`);
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
-  console.log("From signToken: Generated token:", token);
-  return token;
 };
 
 const createSendToken = (user, statusCode, res) => {
-  token = signToken(user._id);
-  console.log("From createSendToken: Generated token:", token);
-
+  const token = signToken(user._id);
+  console.log("Token from createSendToken:", token);
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
@@ -34,23 +26,19 @@ const createSendToken = (user, statusCode, res) => {
   };
   if (process.env.NODE_ENV === "production") cookieOptions.secure = true;
 
-  console.log("From createSendToken: Cookie options:", cookieOptions);
-
   res.cookie("jwt", token, cookieOptions);
-  console.log("From createSendToken: Sent token as cookie");
 
   // Remove password from output
   user.password = undefined;
-  console.log("From createSendToken: Removed password from user object");
+
+  console.log("Token:", token);
+  console.log("User data:", user);
 
   res.status(statusCode).json({
     status: "success",
     token,
-    data: {
-      user,
-    },
+    user,
   });
-  console.log("From createSendToken: Sent response with token and user data");
 };
 
 module.exports.signup = catchAsync(async (req, res, next) => {
@@ -59,71 +47,46 @@ module.exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    role: req.body.role,
   });
+  console.log("New user created:", newUser);
   createSendToken(newUser, 201, res);
 });
-
-module.exports.login = catchAsync(async (req, res, next) => {
+/////////////////////////////////////////login
+exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+  console.log("Login request:", email, password);
 
-  console.log("From login: Received login request with email:", email);
-
-  //1 check if email and password provided
+  // 1) Check if email and password exist
   if (!email || !password) {
     return next(new AppError("Please provide email and password!", 400));
   }
 
-  //2 find the user by email
+  // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select("+password");
-  console.log("From login: Found user:", user.name);
-  if (!user) {
-    return next(new AppError("Incorrect email or password!", 401));
+
+  console.log("User found:", user);
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new AppError("Incorrect email or password", 401));
   }
 
-  console.log("From login: Found user:", user.name);
-
-  const correct = await user.correctPassword(password, user.password);
-  if (!correct) {
-    return next(new AppError("Incorrect email or password!", 401));
-  }
-
-  //4 send token
+  // 3) If everything ok, send token to client
   createSendToken(user, 200, res);
-  req.user = user;
-  console.log("From login: Logged in user:", user.name);
+  res.locals.user = user; //set user object to locals.user
 });
-
-module.exports.logout = async (req, res) => {
-  try {
-    if (req.user) {
-      const userId = req.user.id;
-      await User.findByIdAndUpdate(userId, {
-        lastLogoutAt: Date.now(),
-      });
-    }
-
-    // Send a response with an expired JWT cookie and success message
-    res.clearCookie("jwt"); // Clear the JWT cookie
-    req.user = null;
-    res.locals.user = null; // Clear the user object
-    res.status(200).json({
-      status: "success",
-      message: "Logged out successfully!",
-    });
-  } catch (error) {
-    // Handle any errors that occur during logout
-    console.error("Logout error:", error);
-    res.status(500).json({
-      status: "error",
-      message: "An error occurred during logout.",
-    });
-  }
+//////////////////////////////////////////////
+exports.logout = (req, res) => {
+  res.cookie("jwt", "loggedout", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  console.log("User logged out");
+  res.status(200).json({ status: "success" });
 };
-//middleware protect routes
-module.exports.protect = catchAsync(async (req, res, next) => {
+/////////////////////////////////////////////
+exports.protect = catchAsync(async (req, res, next) => {
+  // 1) Getting token and check of it's there
   let token;
-  //1.get token and check if it exists
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -132,66 +95,97 @@ module.exports.protect = catchAsync(async (req, res, next) => {
   } else if (req.cookies.jwt) {
     token = req.cookies.jwt;
   }
+
+  console.log("Token from request:", token);
+
   if (!token) {
-    req.user = null;
     return next(
-      new AppError("You are not logged in! Please log in to get access", 401)
+      new AppError("You are not logged in! Please log in to get access.", 401)
     );
   }
 
-  //2 validate token
+  // 2) Verification token
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  //3 check if user still exist
+
+  console.log("Decoded token:", decoded);
+
+  // 3) Check if user still exists
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
-      new AppError("The user belonging to this token does no longer exist", 401)
+      new AppError(
+        "The user belonging to this token does no longer exist.",
+        401
+      )
     );
   }
-  //4 check if user changed password after token issued
+
+  // 4) Check if user changed password after the token was issued
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
-      new AppError("User recently changed password! Please log in again", 401)
+      new AppError("User recently changed password! Please log in again.", 401)
     );
   }
-  req.user = currentUser;
 
+  // GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  res.locals.user = currentUser;
   next();
 });
+//////////////////////////////
+exports.isLoggedIn = async (req, res, next) => {
+  if (req.cookies.jwt) {
+    try {
+      // Check if the token is a valid JWT format
+      const isValidToken =
+        /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/.test(
+          req.cookies.jwt
+        );
 
-// middleware/isLoggedIn.js
-module.exports.isLoggedIn = async (req, res, next) => {
-  // Check if there is a token in the request
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
+      if (!isValidToken) {
+        throw new Error("Invalid token format");
+      }
+
+      // Verify the token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      res.locals.user = currentUser;
+
+      if (!currentUser) {
+        return next();
+      }
+
+      // Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      return next();
+    } catch (error) {
+      console.error("Error in isLoggedIn middleware:", error);
+      // Handle the error appropriately, e.g., clear the invalid token cookie and redirect to login page
+      res.clearCookie("jwt");
+      return res.redirect("/");
+    }
   }
 
-  if (!token) {
-    return next();
-  }
-  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-  const user = await User.findById(decoded.id);
-  if (!user) {
-    res.locals.user = null; //set user to null if no user found
-    return next();
-  }
-  if (await user.changedPasswordAfter(decoded.iat)) {
-    return next();
-  }
-  req.user = user;
   next();
 };
-
-module.exports.restrictTo = (...roles) => {
+/////////////////////////////////////////
+exports.restrictTo = (...roles) => {
   return (req, res, next) => {
+    // roles ['admin', 'lead-guide']. role='user'
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError("You do not have permission to perform this action", 403)
       );
     }
+    //no cookie move on
     next();
   };
 };
@@ -236,5 +230,3 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
     );
   }
 });
-
-module.exports.resetPassword = (req, res, next) => {};

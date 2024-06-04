@@ -1,0 +1,40 @@
+extends base
+
+block content 
+    main.main
+        .card-container
+            each tour in tours
+                .card
+                    .card__header
+                        .card__picture
+                            .card__picture-overlay &nbsp;
+                            img.card__picture-img(src=`img/tours/${tour.imageCover}`, alt=`${tour.name}`)
+                        h3.heading-tertirary
+                            span=tour.name
+
+                    .card__details
+                        h4.card__sub-heading=`${tour.duration}-day`
+                        p.card__text=tour.summary
+                        .card__data
+                            i.fas.fa-map-pin.card__icon
+                            span=`Start Location: ${tour.startLocation}`
+                        .card__data
+                            i.fas.fa-calendar.card__icon
+                            span=`Start Date ${new Date(tour.startDate).toLocaleDateString()}`
+                        .card__data
+                            i.fas.fa-flag.card__icon
+                            span=`${tour.stops} stops`
+                        .card__data
+                            i.fas.fa-user.card__icon
+                            span=`Group Size: ${tour.groupSize}`
+
+                    .card__footer
+                        p
+                            span.card__footer-value=`$USD ${tour.price.toLocaleString('en-US',{minimumFractionDigits:0})} `    
+                            | 
+                            span.card__footer-text per person
+                        p.card__ratings
+                            span.card__footer-value=tour.ratingsAverage
+                            | 
+                            span.card__footer-text=`Rating (${tour.ratingsQuantity})`
+                        a.btn.btn--green.btn--small(href=`/tour/${tour.slug}`) Details

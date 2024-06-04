@@ -1,7 +1,7 @@
 //models/tours
 
 const mongoose = require("mongoose");
-const validator = require("validator");
+
 const slugify = require("slugify");
 
 /////////////////schema///
@@ -14,8 +14,9 @@ const tourSchema = new mongoose.Schema(
       trim: true,
       maxlength: [40, "The Tour name should be less than 40 characters"], //validator
       minlength: [10, "The Tour name should be more than 10 characters"], //validator
-      validate: [validator.isAlpha, "Tour name must only contain character"], //validator
     },
+    slug: String,
+
     duration: {
       type: Number,
       required: [true, "Duration is required"],
@@ -54,6 +55,7 @@ const tourSchema = new mongoose.Schema(
     createAt: {
       type: Date,
       default: Date.now(),
+      select: false,
     },
     startLocation: {
       type: String,
@@ -73,10 +75,7 @@ const tourSchema = new mongoose.Schema(
     groupSize: {
       type: String,
     },
-    slug: {
-      type: String,
-      unique: true,
-    },
+
     guides: [
       {
         type: mongoose.Schema.Types.ObjectId,

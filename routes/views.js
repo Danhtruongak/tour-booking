@@ -1,17 +1,18 @@
-//routes/views.js
+//rotues/views.js
 const express = require("express");
-const views = require("../daos/views");
-const auth = require("../daos/auth");
+const viewsDAOS = require("../daos/views");
+const authDAOS = require("../daos/auth");
 const router = express.Router();
 
-router.use(auth.isLoggedIn);
-//route for main page
-router.get("/", views.getOverview);
+router.use(authDAOS.isLoggedIn);
 
-//route for individual page
-router.get("/tour/:slug", views.getTour);
+router.get("/", viewsDAOS.getOverview);
+router.get("/tour/:slug", viewsDAOS.getTour);
 
-//route for login
-router.get("/login", views.getLogInForm);
+router.get("/login", (req, res, next) => {
+  viewsDAOS.getLoginForm(req, res, next);
+});
+
+router.get("/me", viewsDAOS.getAccount);
 
 module.exports = router;
