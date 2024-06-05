@@ -43,5 +43,27 @@ const logout = async () => {
     console.error("Error during logout:", error);
   }
 };
+const searchTours = async () => {
+  const searchQuery = searchInput.value;
+  console.log("Search query:", searchQuery);
 
-export { login, logout };
+  try {
+    const response = await fetch(
+      `/tours/search?query=${encodeURIComponent(searchQuery)}`
+    );
+    const data = await response.json();
+
+    if (response.ok) {
+      // Handle the search response data
+      console.log("Search response:", data);
+      // Update the UI with the search results
+    } else {
+      console.error("Search request failed:", data);
+      // Handle the error case
+    }
+  } catch (error) {
+    console.error("Error during search:", error);
+    // Handle any network or other errors
+  }
+};
+export { login, logout, searchTours };

@@ -16,6 +16,9 @@ const tourSchema = new mongoose.Schema(
       minlength: [10, "The Tour name should be more than 10 characters"], //validator
     },
     slug: String,
+    searchContent: {
+      type: String,
+    },
 
     duration: {
       type: Number,
@@ -85,9 +88,12 @@ const tourSchema = new mongoose.Schema(
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+tourSchema.index({ searchContent: "text" }); //create text index
 
 tourSchema.pre("save", function (next) {
   this.slug = slugify(this.name, { lower: true });
+  this.searchContent =
+    `${this.name} ${this.summary} ${this.description} ${this.startLocation}`.toLowerCase();
   next();
 });
 

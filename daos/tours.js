@@ -49,3 +49,46 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.createTour = catchAsync(async (req, res, next) => {
+  const { name, description, duration, maxGroupSize, price, summary } =
+    req.body;
+
+  const searchContent = `${name} ${description}`.toLowerCase();
+
+  const newTour = await Tour.create({
+    name,
+    description,
+    duration,
+    ratingsAverage,
+    ratingsQuantity,
+    difficulty,
+    price,
+    summary,
+    imageCover,
+    images,
+    startLocation,
+    startDate,
+    stops,
+    maxGroupSize,
+    guides,
+    searchContent,
+  });
+});
+exports.searchTours = catchAsync(async (req, res, next) => {
+  const { query } = req.query;
+  const searchQuery = query.toLowerCase().replace(/[^a-z0-9]/g, "\\$&");
+
+  const tours = await Tour.find(
+    { $text: { $search: searchQuery } },
+    { score: { $meta: "textScore" } }
+  ).sort({ score: { $meta: "textScore" } });
+
+  res.status(200).json({
+    status: "success",
+    results: tours.length,
+    data: {
+      tours,
+    },
+  });
+});

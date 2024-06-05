@@ -12,7 +12,7 @@ router.get("/tour/:slug", viewsDAOS.getTour);
 router.get("/login", (req, res, next) => {
   viewsDAOS.getLoginForm(req, res, next);
 });
-
+router.get("/tours/search", viewsDAOS.searchTours);
 router.get("/me", viewsDAOS.getAccount);
 
 module.exports = router;

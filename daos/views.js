@@ -52,3 +52,18 @@ exports.getAccount = (req, res) => {
     title: "Your account",
   });
 };
+
+// daos/views.js
+
+exports.searchTours = catchAsync(async (req, res, next) => {
+  const { query } = req.query;
+  const tours = await Tour.find(
+    { $text: { $search: query } },
+    { score: { $meta: "textScore" } }
+  ).sort({ score: { $meta: "textScore" } });
+
+  res.status(200).render("searchTours", {
+    title: "Search Results",
+    tours,
+  });
+});
