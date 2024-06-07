@@ -1,5 +1,5 @@
-///APP
-const cors = require("cors");
+// app.js
+
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const express = require("express");
@@ -17,20 +17,8 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
 // 1) MIDDLEWARES
-if (process.env.NODE_ENV === "development") {
-}
-
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:8000",
-  })
-);
-app.use((req, res, next) => {
-  console.log("Hello from the middleware 👋");
-  next();
-});
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
@@ -39,7 +27,6 @@ app.use((req, res, next) => {
 });
 
 // 3) ROUTES
-///connnect to main page
 app.use("/", viewsRouter);
 app.use("/tours", tours);
 app.use("/users", users);

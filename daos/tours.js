@@ -5,54 +5,84 @@ const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
 const factory = require("./handlerFactory");
 
-exports.aliasTopTours = (req, res, next) => {
-  req.query.limit = "5";
-  req.query.sort = "-ratingsAverage,price";
-  req.query.fields = "name,price,ratingsAverage,summary,difficulty";
-  next();
-};
-
-exports.getAllTours = factory.getAll(Tour);
 exports.getTour = factory.getOne(Tour, { path: "guides" });
 exports.createTour = factory.createOne(Tour);
-exports.updateTour = factory.updateOne(Tour);
-exports.deleteTour = factory.deleteOne(Tour);
 
-exports.getTourStats = catchAsync(async (req, res, next) => {
-  const stats = await Tour.aggregate([
+// daos/tours.js
+exports.getAllTours = catchAsync(async (req, res, next) => {
+  const tours = await Tour.aggregate([
     {
-      $match: { ratingsAverage: { $gte: 4.5 } },
-    },
-    {
-      $group: {
-        _id: { $toUpper: "$difficulty" },
-        numTours: { $sum: 1 },
-        numRatings: { $sum: "$ratingsQuantity" },
-        avgRating: { $avg: "$ratingsAverage" },
-        avgPrice: { $avg: "$price" },
-        minPrice: { $min: "$price" },
-        maxPrice: { $max: "$price" },
+      $project: {
+        name: 1,
+        guides: 1,
       },
     },
     {
-      $sort: { avgPrice: 1 },
+      $lookup: {
+        from: "users",
+        localField: "guides",
+        foreignField: "_id",
+        as: "guides",
+      },
     },
-    // {
-    //   $match: { _id: { $ne: 'EASY' } }
-    // }
+    {
+      $project: {
+        name: 1,
+        duration: 1,
+        ratingsAverage: 1,
+        ratingQuantity: 1,
+        price: 1,
+        summary: 1,
+        description: 1,
+        imageCover: 1,
+        images: 1,
+        startDate: 1,
+        startLocation: 1,
+        stops: 1,
+        groupSize: 1,
+        slug: 1,
+        searchContent: 1,
+        guides: {
+          $map: {
+            input: "$guides",
+            as: "guide",
+            in: {
+              name: "$$guide.name",
+              photo: "$$guide.photo",
+            },
+          },
+        },
+      },
+    },
   ]);
+  console.log("Tours after aggregation:", JSON.stringify(tours, null, 2));
 
   res.status(200).json({
     status: "success",
+    results: tours.length,
     data: {
-      stats,
+      tours,
     },
   });
 });
-
 exports.createTour = catchAsync(async (req, res, next) => {
-  const { name, description, duration, maxGroupSize, price, summary } =
-    req.body;
+  const {
+    name,
+    description,
+    duration,
+    maxGroupSize,
+    price,
+    summary,
+    guides,
+    ratingsAverage,
+    ratingsQuantity,
+    difficulty,
+    imageCover,
+    images,
+    startLocation,
+    startDate,
+    stops,
+  } = req.body;
 
   const searchContent = `${name} ${description}`.toLowerCase();
 
@@ -74,7 +104,16 @@ exports.createTour = catchAsync(async (req, res, next) => {
     guides,
     searchContent,
   });
+
+  res.status(201).json({
+    status: "success",
+    data: {
+      tour: newTour,
+    },
+  });
 });
+////////////////create text search
+
 exports.searchTours = catchAsync(async (req, res, next) => {
   const { query } = req.query;
   const searchQuery = query.toLowerCase().replace(/[^a-z0-9]/g, "\\$&");
