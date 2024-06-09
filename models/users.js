@@ -44,14 +44,12 @@ const userSchema = new mongoose.Schema({
   passwordResetToken: String,
   passwordResetExpires: Date,
 });
-
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
   next();
 });
-
 userSchema.methods.correctPassword = async function (password, userPassword) {
   return await bcrypt.compare(password, userPassword);
 };
@@ -66,7 +64,6 @@ userSchema.methods.changedPasswordAfter = async function (JWTTimestamp) {
   }
   return false;
 };
-
 userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto
