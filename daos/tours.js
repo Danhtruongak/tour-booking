@@ -1,7 +1,7 @@
 const Tour = require("../models/tours");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-
+const factory = require("./handlerFactory");
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = "5";
   req.query.sort = "-ratingsAverage,price";
