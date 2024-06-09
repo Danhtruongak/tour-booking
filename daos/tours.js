@@ -35,7 +35,6 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
       },
     },
     {
-
       $lookup: {
         from: "users",
         localField: "guides",
@@ -58,15 +57,13 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
         },
       },
     },
-  ]).option({ maxTimeMS: 60000 }); // Set the timeout to 60 seconds
-=======
+    {
       $sort: { avgPrice: 1 },
     },
     // {
     //   $match: { _id: { $ne: 'EASY' } }
     // }
-  ]);
->>>>>>> parent of 9e5d987 (completed mongoose lookup)
+  ]).option({ maxTimeMS: 60000 }); // Set the timeout to 60 seconds
 
   res.status(200).json({
     status: "success",
