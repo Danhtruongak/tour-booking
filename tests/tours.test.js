@@ -1,7 +1,8 @@
-/*const request = require("supertest");
+const request = require("supertest");
 const app = require("../app");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const Tour = require("../models/tours");
 
 dotenv.config({ path: "./config.env" });
 
@@ -28,5 +29,23 @@ describe("Test Suite", () => {
       expect(res.body.status).toEqual("success");
       expect(Array.isArray(res.body.data.tours)).toBe(true);
     }, 60000);
+
+    it("should retrieve a specific tour", async () => {
+      const tour = await Tour.findOne();
+      const res = await request(app).get(`/tours/${tour.slug}`);
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.status).toEqual("success");
+      expect(res.body.data.tour.name).toEqual(
+        "Vietnam Highlights: Pearl of Indochina"
+      );
+    });
+
+    it("should search for tours", async () => {
+      const searchQuery = "Vietnam";
+      const res = await request(app).get(`/tours/search?query=${searchQuery}`);
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.status).toEqual("success");
+      expect(Array.isArray(res.body.data.tours)).toBe(true);
+    });
   });
-});*/
+});

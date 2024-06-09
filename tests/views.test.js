@@ -30,7 +30,7 @@ describe("Views routes", () => {
 
     describe("GET /tour/:slug", () => {
       it("should retrieve a specific tour page", async () => {
-        const tourSlug = "Vietnam-Hightlights";
+        const tourSlug = "vietnamHighlights";
         const res = await request(app).get(`/tour/${tourSlug}`);
         expect(res.statusCode).toEqual(200);
         expect(res.text).toContain(
@@ -56,7 +56,7 @@ describe("Views routes", () => {
 
     describe("GET /tours/search", () => {
       it("should retrieve search results for tours", async () => {
-        const searchQuery = "Vietnam-Hightlights ";
+        const searchQuery = "VietnamHightlights ";
         const res = await request(app).get(
           `/tours/search?query=${searchQuery}`
         );
