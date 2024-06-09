@@ -3,12 +3,16 @@
 import { login, logout, searchTours } from "./login";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const showFiltersBtn = document.querySelector(".show-filters-btn");
-  const filtersForm = document.querySelector("#filters-form"); //selector work because css result
+  console.log("DOMContentLoaded");
+  const searchForm = document.getElementById("search-form");
   const loginForm = document.querySelector(".form--login");
+  const userDataForm = document.querySelector(".form-user-data");
   const logOutBtn = document.querySelector(".nav__el--logout");
 
-  if (logOutBtn) logOutBtn.addEventListener("click", logout); //why nothing in here
+  if (logOutBtn)
+    logOutBtn.addEventListener("click", () => {
+      logout, console.log("locked out is here");
+    });
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -18,6 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
       login(email, password);
       return false;
     });
+  } else {
+    console.log("Login form not found");
   }
 
   if (userDataForm) {
@@ -31,6 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Add your logic for updating user data here
       return false;
     });
+  } else {
+    console.log("User data form not found");
   }
   //////////////////////////////////
   if (searchForm) {
@@ -38,5 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       searchTours();
     });
+  } else {
+    console.log("Search form not found");
   }
 });

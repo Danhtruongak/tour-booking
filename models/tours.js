@@ -96,12 +96,6 @@ tourSchema.pre("save", function (next) {
     `${this.name} ${this.summary} ${this.description} ${this.startLocation}`.toLowerCase();
   next();
 });
-// Create indexes
-tourSchema.index({ price: 1, ratingsAverage: -1 });
-tourSchema.index({ slug: 1 });
-
-// Create text index on name, summary, and description fields
-tourSchema.index({ name: "text", summary: "text", description: "text" });
 
 const Tour = mongoose.model("Tour", tourSchema);
 

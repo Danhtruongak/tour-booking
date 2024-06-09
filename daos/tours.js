@@ -2,35 +2,33 @@ const Tour = require("../models/tours");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  const tours = await Tour.aggregate([
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = "5";
+  req.query.sort = "-ratingsAverage,price";
+  req.query.fields = "name,price,ratingsAverage,summary,difficulty";
+  next();
+};
+
+exports.getAllTours = factory.getAll(Tour);
+exports.getTour = factory.getOne(Tour, { path: "guides" });
+exports.createTour = factory.createOne(Tour);
+exports.updateTour = factory.updateOne(Tour);
+exports.deleteTour = factory.deleteOne(Tour);
+
+exports.getTourStats = catchAsync(async (req, res, next) => {
+  const stats = await Tour.aggregate([
     {
-      $project: {
-        name: 1,
-        guides: 1,
-      },
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "guides",
-        foreignField: "_id",
-        as: "guides",
-      },
-    },
-    {
-      $unwind: "$guides",
+      $match: { ratingsAverage: { $gte: 4.5 } },
     },
     {
       $group: {
-        _id: "$_id",
-        name: { $first: "$name" },
-        guides: {
-          $push: {
-            name: "$guides.name",
-            photo: "$guides.photo",
-          },
-        },
+        _id: { $toUpper: "$difficulty" },
+        numTours: { $sum: 1 },
+        numRatings: { $sum: "$ratingsQuantity" },
+        avgRating: { $avg: "$ratingsAverage" },
+        avgPrice: { $avg: "$price" },
+        minPrice: { $min: "$price" },
+        maxPrice: { $max: "$price" },
       },
     },
     {
@@ -39,30 +37,44 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     // {
     //   $match: { _id: { $ne: 'EASY' } }
     // }
-  ]).option({ maxTimeMS: 60000 }); // Set the timeout to 60 seconds
+  ]);
 
   res.status(200).json({
     status: "success",
-    results: tours.length,
     data: {
-      tours,
+      stats,
     },
   });
 });
 
 exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
+  const { name, description, duration, maxGroupSize, price, summary } =
+    req.body;
 
-  res.status(201).json({
-    status: "success",
-    data: {
-      tour: newTour,
-    },
+  const searchContent = `${name} ${description}`.toLowerCase();
+
+  const newTour = await Tour.create({
+    name,
+    description,
+    duration,
+    ratingsAverage,
+    ratingsQuantity,
+    difficulty,
+    price,
+    summary,
+    imageCover,
+    images,
+    startLocation,
+    startDate,
+    stops,
+    maxGroupSize,
+    guides,
+    searchContent,
   });
 });
-
-exports.getTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findById(req.params.id).populate("guides");
+exports.searchTours = catchAsync(async (req, res, next) => {
+  const { query } = req.query;
+  const searchQuery = query.toLowerCase().replace(/[^a-z0-9]/g, "\\$&");
 
   if (!tour) {
     return next(new AppError("No tour found with that ID", 404));
