@@ -11,26 +11,7 @@ const DB = process.env.DATABASE.replace(
   process.env.DATABASE_PASSWORD
 );
 
-mongoose
-  .connect(DB)
-  .then(() => {
-    console.log("Connected to danhtours database");
-    Tour.updateMany(
-      { searchContent: "" },
-      { $set: { searchContent: "" } },
-      { new: true },
-      (err, updatedTours) => {
-        if (err) {
-          console.error("Error updating tours:", err);
-        } else {
-          console.log("Tours updated successfully");
-        }
-      }
-    );
-  })
-  .catch((err) => {
-    console.error("Error connecting to the database:", err);
-  });
+mongoose.connect(DB).then(() => {});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
