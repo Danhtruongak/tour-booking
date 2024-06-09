@@ -1,26 +1,39 @@
 extends base
 
 block content
-  section.tour-stats
-    .container
-      h2.heading-primary Tour Statistics
+  h1 Tour Statistics
 
-      .stats-container
-        .stat
-          h2.heading-secondary Number of Tours
-          p.stat-value= stats[0].numTours
-        .stat
-          h2.heading-secondary Number of Ratings
-          p.stat-value= stats[0].numRatings
-        .stat
-          h2.heading-secondary Average Rating
-          p.stat-value= stats[0].avgRating.toFixed(2)
-        .stat
-          h2.heading-secondary Average Price
+  if stats && stats.length > 0
+    .stats-container
+      .stat
+        h2.heading-secondary Number of Tours
+        p.stat-value= stats[0].numTours
+      .stat
+        h2.heading-secondary Number of Ratings
+        p.stat-value= stats[0].numRatings
+      .stat
+        h2.heading-secondary Average Rating
+        if stats[0].avgRating
+          p.stat-value= Number(stats[0].avgRating).toFixed(2)
+        else
+          p.stat-value N/A
+      .stat
+        h2.heading-secondary Average Price
+        if stats[0].avgPrice
           p.stat-value= `$${stats[0].avgPrice.toFixed(2)}`
-        .stat
-          h2.heading-secondary Minimum Price
+        else
+          p.stat-value N/A
+      .stat
+        h2.heading-secondary Minimum Price
+        if stats[0].minPrice
           p.stat-value= `$${stats[0].minPrice.toFixed(2)}`
-        .stat
-          h2.heading-secondary Maximum Price
+        else
+          p.stat-value N/A
+      .stat
+        h2.heading-secondary Maximum Price
+        if stats[0].maxPrice
           p.stat-value= `$${stats[0].maxPrice.toFixed(2)}`
+        else
+          p.stat-value N/A
+  else
+    p No tour statistics available.
