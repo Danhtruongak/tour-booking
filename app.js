@@ -22,7 +22,7 @@ app.use(cookieParser());
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-  console.log(req.cookies);
+
   next();
 });
 
@@ -30,6 +30,16 @@ app.use((req, res, next) => {
 app.use("/", viewsRouter);
 app.use("/tours", tours);
 app.use("/users", users);
+
+app.use((err, req, res, next) => {
+  err.statusCode = err.statusCode || 500;
+  err.status = err.status || "error";
+
+  res.status(err.statusCode).json({
+    status: err.statusCode || "error",
+    message: err.message || "Something went wrong!",
+  });
+});
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

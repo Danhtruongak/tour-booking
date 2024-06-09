@@ -26,36 +26,21 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $project: {
-        name: 1,
-        duration: 1,
-        ratingsAverage: 1,
-        ratingQuantity: 1,
-        price: 1,
-        summary: 1,
-        description: 1,
-        imageCover: 1,
-        images: 1,
-        startDate: 1,
-        startLocation: 1,
-        stops: 1,
-        groupSize: 1,
-        slug: 1,
-        searchContent: 1,
+      $unwind: "$guides",
+    },
+    {
+      $group: {
+        _id: "$_id",
+        name: { $first: "$name" },
         guides: {
-          $map: {
-            input: "$guides",
-            as: "guide",
-            in: {
-              name: "$$guide.name",
-              photo: "$$guide.photo",
-            },
+          $push: {
+            name: "$guides.name",
+            photo: "$guides.photo",
           },
         },
       },
     },
-  ]);
-  console.log("Tours after aggregation:", JSON.stringify(tours, null, 2));
+  ]).option({ maxTimeMS: 60000 }); // Set the timeout to 60 seconds
 
   res.status(200).json({
     status: "success",
@@ -65,6 +50,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.createTour = catchAsync(async (req, res, next) => {
   const {
     name,

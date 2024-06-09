@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/users");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const sendEmail = require("../utils/mailer");
+
 const app = require("../app");
 
 const signToken = (id) => {
@@ -52,9 +52,8 @@ module.exports.signup = catchAsync(async (req, res, next) => {
   createSendToken(newUser, 201, res);
 });
 /////////////////////////////////////////login
-exports.login = catchAsync(async (req, res, next) => {
+module.exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("Login request:", email, password);
 
   // 1) Check if email and password exist
   if (!email || !password) {
@@ -63,8 +62,6 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 2) Check if user exists && password is correct
   const user = await User.findOne({ email }).select("+password");
-
-  console.log("User found:", user);
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect email or password", 401));
@@ -75,7 +72,7 @@ exports.login = catchAsync(async (req, res, next) => {
   res.locals.user = user; //set user object to locals.user
 });
 //////////////////////////////////////////////
-exports.logout = (req, res) => {
+module.exports.logout = (req, res) => {
   res.cookie("jwt", "loggedout", {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,
@@ -84,7 +81,7 @@ exports.logout = (req, res) => {
   res.status(200).json({ status: "success" });
 };
 /////////////////////////////////////////////
-exports.protect = catchAsync(async (req, res, next) => {
+module.exports.protect = catchAsync(async (req, res, next) => {
   // 1) Getting token and check of it's there
   let token;
   if (
@@ -133,7 +130,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 //////////////////////////////
-exports.isLoggedIn = async (req, res, next) => {
+module.exports.isLoggedIn = async (req, res, next) => {
   if (req.cookies.jwt) {
     try {
       // Check if the token is a valid JWT format
@@ -177,7 +174,7 @@ exports.isLoggedIn = async (req, res, next) => {
   next();
 };
 /////////////////////////////////////////
-exports.restrictTo = (...roles) => {
+module.exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     // roles ['admin', 'lead-guide']. role='user'
     if (!roles.includes(req.user.role)) {
@@ -190,44 +187,4 @@ exports.restrictTo = (...roles) => {
   };
 };
 
-exports.forgotPassword = catchAsync(async (req, res, next) => {
-  // 1) Get user based on POSTed email
-  const user = await User.findOne({ email: req.body.email });
-  if (!user) {
-    return next(new AppError("There is no user with email address.", 404));
-  }
-
-  // 2) Generate the random reset token
-  const resetToken = user.createPasswordResetToken();
-  await user.save({ validateBeforeSave: false });
-
-  // 3) Send it to user's email
-  const resetURL = `${req.protocol}://${req.get(
-    "host"
-  )}/api/v1/users/resetPassword/${resetToken}`;
-
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: "Your password reset token (valid for 10 min)",
-      message,
-    });
-
-    res.status(200).json({
-      status: "success",
-      message: "Token sent to email!",
-    });
-  } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-
-    return next(
-      new AppError("There was an error sending the email. Try again later!"),
-      500
-    );
-  }
-});
 /////////////////////////////////
