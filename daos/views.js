@@ -1,4 +1,3 @@
-// daos/view
 const Tour = require("./../models/tours");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
@@ -14,7 +13,36 @@ exports.getOverview = catchAsync(async (req, res, next) => {
         as: "guides",
       },
     },
+    {
+      $project: {
+        name: 1,
+        imageCover: 1,
+        duration: 1,
+        summary: 1,
+        startLocation: 1,
+        startDate: 1,
+        stops: 1,
+        groupSize: 1,
+        price: 1,
+        ratingsAverage: 1,
+        ratingsQuantity: 1,
+        slug: 1,
+        guides: {
+          $map: {
+            input: "$guides",
+            as: "guide",
+            in: {
+              name: "$$guide.name",
+              photo: "$$guide.photo",
+            },
+          },
+        },
+      },
+    },
   ]);
+
+  console.log("Tours data:", tours);
+
   res.status(200).render("overview", {
     title: "All Tours",
     tours,
@@ -24,6 +52,8 @@ exports.getOverview = catchAsync(async (req, res, next) => {
 exports.getTour = catchAsync(async (req, res, next) => {
   // 1) Get the data, for the requested tour (including reviews and guides)
   const tour = await Tour.findOne({ slug: req.params.slug }).populate("guides");
+
+  console.log("Tour data:", tour);
 
   if (!tour) {
     return next(new AppError("There is no tour with that name.", 404));
@@ -55,6 +85,8 @@ exports.searchTours = catchAsync(async (req, res, next) => {
     { score: { $meta: "textScore" } }
   ).sort({ score: { $meta: "textScore" } });
 
+  console.log("Search results:", tours);
+
   res.status(200).render("searchTours", {
     title: "Search Results",
     tours,
@@ -81,6 +113,8 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
       $sort: { avgPrice: 1 },
     },
   ]);
+
+  console.log("Tour stats:", stats);
 
   res.status(200).render("tourStats", {
     title: "Tour Statistics",

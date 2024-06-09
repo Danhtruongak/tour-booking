@@ -1,8 +1,11 @@
 //- header.pug
 
+
 header.header
   nav.nav.nav--tours
     a.nav__el(href='/') All tours
+    a.nav__el.show-filters-btn(href='/tours/stats') Tour Statistics
+
       
     .search-bar
       form#search-form(action="/tours/search" method="GET")
@@ -10,17 +13,14 @@ header.header
         button(type="submit")
           i.fas.fa-search
 
-
   nav.nav.nav--user
     if locals.user
       a.nav__el.nav__el--logout Log out
-      a.nav__el(href='/me')
+      a.nav__el(href='/#')
         img.nav__user-img(src=`/img/users/${locals.user.photo}` alt=`Photo of ${locals.user.name}`)
         span= locals.user.name.split(' ')[0]
     else
       a.nav__el(href='/login') Log in
-      a.nav__el.nav__el--cta(href='#') Sign up
-
-  
-   
+      a.nav__el.nav__el--cta() Sign up
+      
 
