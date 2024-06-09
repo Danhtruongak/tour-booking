@@ -1293,38 +1293,131 @@ body {
 .search-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 20px 0;
 }
 
-.search-bar input[type="text"] {
+#search-form {
+  display: flex;
+}
+
+#search-input {
+  flex: 1;
   padding: 10px;
+  font-size: 16px;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-right: 10px;
-  width: 300px;
-  font-size: 16px;
+  border-radius: 4px 0 0 4px;
 }
 
-.search-bar button {
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: #fff;
+#search-form button[type="submit"] {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 0 4px 4px 0;
   cursor: pointer;
-  font-size: 16px;
 }
 
-.search-bar button:hover {
-  background-color: #0056b3;
+#search-form button[type="submit"]:hover {
+  background-color: #45a049;
 }
 
-.search-bar button i {
+#search-form button[type="submit"] i {
   margin-right: 5px;
 }
 
-.search-bar button#clear-button {
-  background-color: #dc3545;
-  margin-left: 10px;
+.show-filters-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 8px 8px;
+  font-size: 15px;
+  cursor: pointer;
+  border-radius: 2px;
+  text-decoration: none;
+  margin-right: 10px;
+}
+
+.show-filters-btn:hover {
+  background-color: #55c57a;
+}
+/* public/css/style.css */
+
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.overlay-active {
+  display: block;
+}
+
+#filters-form {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  z-index: 1000;
+  width: 700px;
+  height: 400px;
+}
+
+#filters-form.active {
+  display: block;
+}
+/* tourStats.css */
+
+.tour-stats {
+  padding: 50px 0;
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat {
+  background-color: #f7f7f7;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+.card__guides {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.card__guide {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+
+.card__guide-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 5px;
+}
+
+.card__guide-name {
+  font-size: 14px;
 }

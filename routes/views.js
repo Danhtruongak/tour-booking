@@ -1,4 +1,4 @@
-//rotues/views.js
+//routes/views.js
 const express = require("express");
 const viewsDAOS = require("../daos/views");
 const authDAOS = require("../daos/auth");
@@ -13,6 +13,7 @@ router.get("/login", (req, res, next) => {
   viewsDAOS.getLoginForm(req, res, next);
 });
 router.get("/tours/search", viewsDAOS.searchTours);
-router.get("/me", viewsDAOS.getAccount);
+
+router.get("/tours/stats", viewsDAOS.getTourStats);
 
 module.exports = router;
