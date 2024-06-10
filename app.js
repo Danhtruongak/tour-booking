@@ -17,9 +17,6 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 
 // 1) MIDDLEWARES
-if (process.env.NODE_ENV === "development") {
-}
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(
@@ -27,13 +24,9 @@ app.use(
     origin: "http://localhost:8000",
   })
 );
-app.use((req, res, next) => {
-  next();
-});
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
-
   next();
 });
 

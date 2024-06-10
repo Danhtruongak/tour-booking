@@ -3,10 +3,13 @@ const app = require("../app");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const User = require("../models/users");
+const jwt = require("jsonwebtoken");
 
 dotenv.config({ path: "./config.env" });
 
 describe("Test Suite", () => {
+  let token;
+
   beforeAll(async () => {
     const DB = process.env.DATABASE.replace(
       "<PASSWORD>",
@@ -63,7 +66,6 @@ describe("Test Suite", () => {
         .send(invalidCredentials);
 
       expect(response.status).toBe(401);
-
       expect(response.body).toHaveProperty(
         "message",
         "Incorrect email or password"

@@ -1,14 +1,11 @@
 //daos/tours
 const Tour = require("./../models/tours");
-const APIFeatures = require("./../utils/apiFeatures");
 const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
 const factory = require("./handlerFactory");
 
 exports.getTour = catchAsync(async (req, res, next) => {
   const tour = await Tour.findOne({ slug: req.params.slug }).populate("guides");
-
-  console.log("Retrieved tour:", tour);
 
   if (!tour) {
     return next(new AppError("No tour found with that slug", 404));
@@ -22,7 +19,6 @@ exports.getTour = catchAsync(async (req, res, next) => {
 
 exports.createTour = factory.createOne(Tour);
 
-// daos/tours.js
 exports.getAllTours = catchAsync(async (req, res, next) => {
   const tours = await Tour.aggregate([
     {
@@ -69,7 +65,6 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
       },
     },
   ]);
-  console.log("Tours after aggregation:", JSON.stringify(tours, null, 2));
 
   res.status(200).json({
     status: "success",
@@ -79,6 +74,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
     },
   });
 });
+
 exports.createTour = catchAsync(async (req, res, next) => {
   const {
     name,
@@ -126,7 +122,6 @@ exports.createTour = catchAsync(async (req, res, next) => {
     },
   });
 });
-////////////////create text search
 
 exports.searchTours = catchAsync(async (req, res, next) => {
   const { query } = req.query;
@@ -136,14 +131,6 @@ exports.searchTours = catchAsync(async (req, res, next) => {
     { $text: { $search: searchQuery } },
     { score: { $meta: "textScore" } }
   ).sort({ score: { $meta: "textScore" } });
-  console.log("Search results:", tours);
-  console.log("Response object:", {
-    status: "success",
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
 
   res.status(200).json({
     status: "success",
