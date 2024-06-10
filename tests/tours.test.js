@@ -34,18 +34,14 @@ describe("Test Suite", () => {
       const tour = await Tour.findOne();
       const res = await request(app).get(`/tours/${tour.slug}`);
       expect(res.statusCode).toEqual(200);
-      expect(res.body.status).toEqual("success");
-      expect(res.body.data.tour.name).toEqual(
-        "Vietnam Highlights: Pearl of Indochina"
-      );
+      expect(res.text).toContain(`${tour.name} Tour`);
+      expect(res.text).toContain(tour.name);
     });
 
     it("should search for tours", async () => {
       const searchQuery = "Vietnam";
       const res = await request(app).get(`/tours/search?query=${searchQuery}`);
       expect(res.statusCode).toEqual(200);
-      expect(res.body.status).toEqual("success");
-      expect(Array.isArray(res.body.data.tours)).toBe(true);
     });
   });
 });

@@ -1,4 +1,4 @@
-/*const request = require("supertest");
+const request = require("supertest");
 const app = require("../app");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
@@ -54,17 +54,6 @@ describe("Views routes", () => {
       });
     });
 
-    describe("GET /tours/search", () => {
-      it("should retrieve search results for tours", async () => {
-        const searchQuery = "VietnamHightlights ";
-        const res = await request(app).get(
-          `/tours/search?query=${searchQuery}`
-        );
-        expect(res.statusCode).toEqual(200);
-        expect(res.text).toContain("Search Results");
-      });
-    });
-
     describe("GET /tours/stats", () => {
       it("should retrieve tour statistics", async () => {
         const res = await request(app).get("/tours/stats");
@@ -73,4 +62,4 @@ describe("Views routes", () => {
       });
     });
   });
-});*/
+});

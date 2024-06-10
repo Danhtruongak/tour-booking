@@ -5,7 +5,21 @@ const catchAsync = require("./../utils/catchAsync");
 const AppError = require("./../utils/appError");
 const factory = require("./handlerFactory");
 
-exports.getTour = factory.getOne(Tour, { path: "guides" });
+exports.getTour = catchAsync(async (req, res, next) => {
+  const tour = await Tour.findOne({ slug: req.params.slug }).populate("guides");
+
+  console.log("Retrieved tour:", tour);
+
+  if (!tour) {
+    return next(new AppError("No tour found with that slug", 404));
+  }
+
+  res.status(200).render("tour", {
+    title: `${tour.name} Tour`,
+    tour,
+  });
+});
+
 exports.createTour = factory.createOne(Tour);
 
 // daos/tours.js
@@ -122,6 +136,14 @@ exports.searchTours = catchAsync(async (req, res, next) => {
     { $text: { $search: searchQuery } },
     { score: { $meta: "textScore" } }
   ).sort({ score: { $meta: "textScore" } });
+  console.log("Search results:", tours);
+  console.log("Response object:", {
+    status: "success",
+    results: tours.length,
+    data: {
+      tours,
+    },
+  });
 
   res.status(200).json({
     status: "success",

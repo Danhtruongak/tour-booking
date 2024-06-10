@@ -5,7 +5,7 @@ const router = express.Router();
 const authDAOS = require("../daos/auth");
 
 router.route("/").get(toursDAOS.getAllTours).post(toursDAOS.createTour);
-router.get("/search", toursDAOS.searchTours);
-router.route("/:id").get(toursDAOS.getTour);
+
+router.route("/:slug").get(toursDAOS.getTour);
 
 module.exports = router;

@@ -50,19 +50,26 @@ exports.getOverview = catchAsync(async (req, res, next) => {
 });
 
 exports.getTour = catchAsync(async (req, res, next) => {
-  // 1) Get the data, for the requested tour (including reviews and guides)
-  const tour = await Tour.findOne({ slug: req.params.slug }).populate("guides");
+  try {
+    // 1) Get the data, for the requested tour (including reviews and guides)
+    const tour = await Tour.findOne({ slug: req.params.slug }).populate(
+      "guides"
+    );
 
-  console.log("Tour data:", tour);
+    console.log("Tour data:", tour);
 
-  if (!tour) {
-    return next(new AppError("There is no tour with that name.", 404));
+    if (!tour) {
+      return next(new AppError("There is no tour with that name.", 404));
+    }
+
+    res.status(200).render("tour", {
+      title: `${tour.name} Tour`,
+      tour,
+    });
+  } catch (error) {
+    console.error("Error in getTour:", error);
+    return next(new AppError("Internal Server Error", 500));
   }
-
-  res.status(200).render("tour", {
-    title: `${tour.name} Tour`,
-    tour,
-  });
 });
 
 // Route handler for login
